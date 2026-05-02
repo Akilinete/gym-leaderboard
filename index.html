@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: #2a2a2a;
+      --text: #f0ede8;
+      --muted: #888;
+      --gold: #e8c547;
+      --silver: #a8b8c8;
+      --bronze: #c87941;
+      --accent: #e8c547;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+    }
+    .logo span { color: var(--text); }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab {
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-body);
+      transition: all 0.15s;
+      letter-spacing: 0.03em;
+    }
+    .nav-tab:hover { color: var(--text); border-color: var(--border); }
+    .nav-tab.active { background: var(--surface); border-color: var(--border); color: var(--text); }
+
+    /* ── MAIN ── */
+    main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* ── EXERCISE FILTER ── */
+    .filter-section { margin-bottom: 2rem; }
+    .filter-label { font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+    .filter-scroll { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ex-chip {
+      padding: 6px 16px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-body);
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .ex-chip:hover { border-color: var(--gold); color: var(--text); }
+    .ex-chip.active { background: var(--gold); border-color: var(--gold); color: #0f0f0f; font-weight: 600; }
+
+    /* ── PODIUM ── */
+    .podium-section { margin-bottom: 2.5rem; }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .section-title strong { color: var(--text); }
+    .podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 16px;
+      height: 200px;
+      margin-bottom: 2rem;
+    }
+    .podium-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 140px;
+    }
+    .podium-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+    .podium-weight {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .podium-bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 10px;
+      font-size: 1.5rem;
+    }
+    .bar-0 { height: 130px; background: linear-gradient(180deg, #f5d76e 0%, #c9a227 100%); }
+    .bar-1 { height: 95px; background: linear-gradient(180deg, #c8d8e8 0%, #8898a8 100%); }
+    .bar-2 { height: 70px; background: linear-gradient(180deg, #e09050 0%, #a05828 100%); }
+    .rank-label {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      margin-top: 6px;
+      color: var(--muted);
+    }
+
+    /* ── TABLE ── */
+    .records-table { width: 100%; border-collapse: collapse; }
+    .records-table thead tr { border-bottom: 1px solid var(--border); }
+    .records-table th {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 500;
+    }
+    .records-table td {
+      padding: 12px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .records-table tr:last-child td { border-bottom: none; }
+    .records-table tr:hover td { background: var(--surface); }
+    .medal-cell { font-size: 18px; width: 40px; }
+    .weight-cell { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 0.05em; color: var(--gold); }
+    .video-link {
+      font-size: 12px;
+      color: var(--gold);
+      text-decoration: none;
+      border: 1px solid var(--gold);
+      padding: 3px 10px;
+      border-radius: 99px;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    .video-link:hover { opacity: 1; }
+    .no-video { color: var(--border); font-size: 13px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 0;
+      color: var(--muted);
+    }
+    .empty-state p { font-size: 14px; margin-top: 8px; }
+
+    /* ── FORM ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 1.5rem;
+      color: var(--gold);
+    }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-body);
+      transition: border-color 0.15s;
+      appearance: none;
+    }
+    .form-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+    .form-group input::placeholder { color: #444; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .new-ex-box {
+      margin-top: 8px;
+      display: none;
+    }
+    .new-ex-box input {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 14px;
+      background: var(--bg);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-body);
+    }
+    .new-ex-box input:focus { outline: none; border-color: var(--gold); }
+    .new-ex-hint { font-size: 11px; color: var(--gold); margin-top: 5px; opacity: 0.7; }
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      background: var(--gold);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .btn-submit:active { transform: scale(0.99); }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ig-note {
+      margin-top: 1.25rem;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .ig-note strong { color: var(--text); }
+    .success-banner {
+      display: none;
+      margin-top: 1rem;
+      padding: 14px 18px;
+      background: #1a2a1a;
+      border: 1px solid #3a6a3a;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #7ec87e;
+      text-align: center;
+    }
+    .error-banner {
+      display: none;
+      margin-top: 1rem;
+      padding: 14px 18px;
+      background: #2a1a1a;
+      border: 1px solid #6a3a3a;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #c87e7e;
+      text-align: center;
+    }
+
+    /* ── SPINNER ── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row td {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+      .form-row { grid-template-columns: 1fr; }
+      .podium-slot { width: 100px; }
+      .podium { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GYM<span>LEADERBOARD</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('podio')">Podio</button>
+    <button class="nav-tab" onclick="switchTab('registro')">Enviar registro</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── PODIO ── -->
+  <div id="tab-podio">
+    <div class="filter-section">
+      <div class="filter-label">Ejercicio</div>
+      <div class="filter-scroll" id="filterChips">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <div class="podium-section">
+      <div class="section-title">Top 3 — <strong id="exerciseTitle">...</strong></div>
+      <div class="podium" id="podium"></div>
+      <table class="records-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Peso</th>
+            <th>Reps</th>
+            <th>Video</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr class="loading-row"><td colspan="5"><span class="spinner"></span> Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── FORMULARIO ── -->
+  <div id="tab-registro" style="display:none;">
+    <div class="form-card">
+      <div class="form-title">Enviar registro</div>
+
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="f-name" placeholder="Tu nombre" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label>Ejercicio</label>
+        <select id="f-exercise" onchange="handleExSelect()">
+          <option value="">— Selecciona un ejercicio —</option>
+        </select>
+        <div class="new-ex-box" id="newExBox">
+          <input type="text" id="f-new-exercise" placeholder="Escribe el nombre del ejercicio o variante..." />
+          <p class="new-ex-hint">Se añadirá como nuevo ejercicio disponible para todos.</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="f-weight" placeholder="ej. 100" min="0" step="0.5" />
+        </div>
+        <div class="form-group">
+          <label>Repeticiones</label>
+          <input type="number" id="f-reps" placeholder="ej. 5" min="1" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Link al video <span style="color:#444;font-size:10px;text-transform:none;">(opcional)</span></label>
+        <input type="url" id="f-video" placeholder="https://drive.google.com/..." />
+      </div>
+
+      <button class="btn-submit" id="btnSubmit" onclick="submitRecord()">Enviar registro</button>
+
+      <div class="ig-note">
+        <strong>Recuerda:</strong> una vez enviado, manda tu video por DM a <strong>@tuusuario</strong> en Instagram para que sea validado y aparezca en el podio.
+      </div>
+
+      <div class="success-banner" id="successBanner"></div>
+      <div class="error-banner" id="errorBanner"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const API = 'https://script.google.com/macros/s/AKfycbwWf-BwLnQKt4oUoV25pHkSxm9H07Ss6E5quL5g-aWj5kYuQEMzMfef08g15gDiRgYU/exec';
+  const MEDALS = ['🥇','🥈','🥉'];
+  const BAR_CLASSES = ['bar-0','bar-1','bar-2'];
+  const PODIUM_ORDER = [1, 0, 2]; // plata, oro, bronce
+
+  let exercises = [];
+  let currentExercise = null;
+  let allRecords = {};
+
+  // ── INIT ──────────────────────────────────────────────────
+  async function init() {
+    await Promise.all([loadExercises(), loadAllRecords()]);
+  }
+
+  async function loadExercises() {
+    try {
+      const res = await fetch(`${API}?action=getExercises`);
+      const data = await res.json();
+      exercises = data.map(e => e.name);
+      buildFilterChips();
+      buildExerciseSelect();
+      if (exercises.length > 0) selectExercise(exercises[0]);
+    } catch (e) {
+      document.getElementById('filterChips').innerHTML = '<span style="color:#c87e7e;font-size:13px;">Error cargando ejercicios</span>';
+    }
+  }
+
+  async function loadAllRecords() {
+    try {
+      const res = await fetch(`${API}?action=getAllRecords`);
+      const data = await res.json();
+      data.forEach(r => {
+        if (!allRecords[r.exercise]) allRecords[r.exercise] = [];
+        allRecords[r.exercise].push(r);
+      });
+    } catch (e) { /* silencioso, se mostrará vacío */ }
+  }
+
+  // ── EJERCICIOS ────────────────────────────────────────────
+  function buildFilterChips() {
+    const div = document.getElementById('filterChips');
+    div.innerHTML = '';
+    exercises.forEach(ex => {
+      const btn = document.createElement('button');
+      btn.className = 'ex-chip' + (ex === currentExercise ? ' active' : '');
+      btn.textContent = ex;
+      btn.onclick = () => selectExercise(ex);
+      div.appendChild(btn);
+    });
+  }
+
+  function buildExerciseSelect() {
+    const sel = document.getElementById('f-exercise');
+    sel.innerHTML = '<option value="">— Selecciona un ejercicio —</option>';
+    exercises.forEach(ex => {
+      const opt = document.createElement('option');
+      opt.value = ex; opt.textContent = ex;
+      sel.appendChild(opt);
+    });
+    const newOpt = document.createElement('option');
+    newOpt.value = '__new__';
+    newOpt.textContent = '+ Añadir nuevo ejercicio / variante...';
+    sel.appendChild(newOpt);
+  }
+
+  function selectExercise(ex) {
+    currentExercise = ex;
+    document.getElementById('exerciseTitle').textContent = ex;
+    buildFilterChips();
+    renderPodio();
+  }
+
+  function handleExSelect() {
+    const val = document.getElementById('f-exercise').value;
+    document.getElementById('newExBox').style.display = val === '__new__' ? 'block' : 'none';
+  }
+
+  // ── PODIO ─────────────────────────────────────────────────
+  function renderPodio() {
+    const data = ((allRecords[currentExercise] || []).slice())
+      .sort((a, b) => b.weight - a.weight);
+
+    const podiumEl = document.getElementById('podium');
+    const tbody    = document.getElementById('tableBody');
+
+    if (data.length === 0) {
+      podiumEl.innerHTML = `<div class="empty-state" style="width:100%;align-self:center;"><div style="font-size:2rem;">🏋️</div><p>Aún no hay registros.<br>¡Sé el primero!</p></div>`;
+      tbody.innerHTML = '';
+      return;
+    }
+
+    podiumEl.innerHTML = '';
+    PODIUM_ORDER.forEach(i => {
+      const slot = document.createElement('div');
+      slot.className = 'podium-slot';
+      const d = data[i];
+      if (!d) { slot.style.width = '140px'; podiumEl.appendChild(slot); return; }
+      const weightColor = i === 0 ? 'var(--gold)' : i === 1 ? 'var(--silver)' : 'var(--bronze)';
+      slot.innerHTML = `
+        <div class="podium-name">${d.name}</div>
+        <div class="podium-weight" style="color:${weightColor}">${d.weight} kg</div>
+        <div class="podium-bar ${BAR_CLASSES[i]}">${MEDALS[i]}</div>
+        <div class="rank-label">${i === 0 ? '1º' : i === 1 ? '2º' : '3º'}</div>
+      `;
+      podiumEl.appendChild(slot);
+    });
+
+    tbody.innerHTML = data.map((d, i) => `
+      <tr>
+        <td class="medal-cell">${MEDALS[i] || i + 1}</td>
+        <td>${d.name}</td>
+        <td class="weight-cell">${d.weight} kg</td>
+        <td style="color:var(--muted)">${d.reps} reps</td>
+        <td>${d.videoUrl ? `<a class="video-link" href="${d.videoUrl}" target="_blank">ver video</a>` : '<span class="no-video">—</span>'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────
+  async function submitRecord() {
+    const name   = document.getElementById('f-name').value.trim();
+    let exercise = document.getElementById('f-exercise').value;
+    const weight = parseFloat(document.getElementById('f-weight').value);
+    const reps   = parseInt(document.getElementById('f-reps').value);
+    const video  = document.getElementById('f-video').value.trim();
+
+    if (exercise === '__new__') {
+      exercise = document.getElementById('f-new-exercise').value.trim();
+    }
+
+    if (!name || !exercise || !weight || !reps) {
+      showBanner('error', 'Rellena todos los campos obligatorios.');
+      return;
+    }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'submitRecord', name, exercise, weight, reps, videoUrl: video }),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        // Añadir localmente para feedback inmediato
+        if (!exercises.includes(exercise)) {
+          exercises.push(exercise);
+          buildFilterChips();
+          buildExerciseSelect();
+        }
+        if (!allRecords[exercise]) allRecords[exercise] = [];
+        allRecords[exercise].push({ name, exercise, weight, reps, videoUrl: video });
+
+        showBanner('success', `Registro de "${exercise}" enviado. Manda tu video a @tuusuario en Instagram para validarlo.`);
+        document.getElementById('f-name').value = '';
+        document.getElementById('f-exercise').value = '';
+        document.getElementById('newExBox').style.display = 'none';
+        document.getElementById('f-new-exercise').value = '';
+        document.getElementById('f-weight').value = '';
+        document.getElementById('f-reps').value = '';
+        document.getElementById('f-video').value = '';
+      } else {
+        showBanner('error', data.error || 'Error al enviar. Inténtalo de nuevo.');
+      }
+    } catch (e) {
+      showBanner('error', 'No se pudo conectar con el servidor. Comprueba tu conexión.');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Enviar registro';
+  }
+
+  function showBanner(type, msg) {
+    const el = document.getElementById(type === 'success' ? 'successBanner' : 'errorBanner');
+    const other = document.getElementById(type === 'success' ? 'errorBanner' : 'successBanner');
+    other.style.display = 'none';
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 6000);
+  }
+
+  // ── TABS ──────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('tab-podio').style.display    = tab === 'podio' ? '' : 'none';
+    document.getElementById('tab-registro').style.display = tab === 'registro' ? '' : 'none';
+    document.querySelectorAll('.nav-tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0) === (tab === 'podio'));
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>
