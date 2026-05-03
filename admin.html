@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Gym Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #181818;
+      --surface2: #222222;
+      --border: #2a2a2a;
+      --text: #f0ede8;
+      --muted: #888;
+      --gold: #e8c547;
+      --green: #4caf7d;
+      --red: #c86060;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; }
+
+    /* LOGIN */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      width: 340px;
+    }
+    .login-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+      margin-bottom: 0.25rem;
+    }
+    .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+    .login-card input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      margin-bottom: 0.75rem;
+    }
+    .login-card input:focus { outline: none; border-color: var(--gold); }
+    .login-card input::placeholder { color: #444; }
+    .login-btn {
+      width: 100%;
+      padding: 11px;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      background: var(--gold);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .login-btn:hover { opacity: 0.9; }
+    .login-error { font-size: 13px; color: var(--red); margin-top: 0.75rem; display: none; }
+
+    /* ADMIN PANEL */
+    #adminPanel { display: none; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 0.05em; color: var(--gold); }
+    .logo span { color: var(--muted); font-size: 1rem; margin-left: 10px; letter-spacing: 0.08em; }
+    .logout-btn {
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--font-body);
+    }
+    .logout-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      flex: 1;
+      min-width: 140px;
+    }
+    .stat-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .stat-value { font-family: var(--font-display); font-size: 2rem; letter-spacing: 0.04em; color: var(--text); }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red { color: var(--red); }
+
+    /* FILTER TABS */
+    .filter-tabs { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+    .f-tab {
+      padding: 7px 18px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-body);
+    }
+    .f-tab.active { background: var(--surface); color: var(--text); border-color: var(--muted); }
+    .f-tab .count {
+      display: inline-block;
+      background: var(--surface2);
+      border-radius: 99px;
+      padding: 1px 7px;
+      font-size: 11px;
+      margin-left: 6px;
+    }
+    .f-tab.active .count { background: var(--gold); color: #0f0f0f; }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    td {
+      padding: 12px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface); }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-weight: 500;
+    }
+    .badge-pending  { background: #2a2000; color: #c8a020; border: 1px solid #4a3800; }
+    .badge-approved { background: #0a2a0a; color: var(--green); border: 1px solid #1a4a1a; }
+    .badge-rejected { background: #2a0a0a; color: var(--red); border: 1px solid #4a1a1a; }
+
+    .action-btns { display: flex; gap: 6px; }
+    .btn-approve, .btn-reject, .btn-undo {
+      padding: 5px 14px;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-weight: 500;
+      border: 1px solid transparent;
+      transition: opacity 0.15s;
+    }
+    .btn-approve { background: #0a2a0a; color: var(--green); border-color: #1a4a1a; }
+    .btn-approve:hover { opacity: 0.8; }
+    .btn-reject  { background: #2a0a0a; color: var(--red);   border-color: #4a1a1a; }
+    .btn-reject:hover  { opacity: 0.8; }
+    .btn-undo    { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+    .btn-undo:hover    { color: var(--text); }
+
+    .video-link {
+      font-size: 12px;
+      color: var(--gold);
+      text-decoration: none;
+      border: 1px solid var(--gold);
+      padding: 3px 10px;
+      border-radius: 99px;
+      opacity: 0.7;
+    }
+    .video-link:hover { opacity: 1; }
+    .weight-cell { font-family: var(--font-display); font-size: 1.1rem; color: var(--gold); }
+
+    .empty-msg { text-align: center; padding: 3rem; color: var(--muted); font-size: 14px; }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #0a2a0a; color: var(--green); border: 1px solid #1a4a1a; }
+    .toast.error   { background: #2a0a0a; color: var(--red);   border: 1px solid #4a1a1a; }
+
+    .refresh-btn {
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      background: transparent;
+      cursor: pointer;
+      font-family: var(--font-body);
+      margin-left: auto;
+    }
+    .refresh-btn:hover { color: var(--text); }
+    .top-row { display: flex; align-items: center; margin-bottom: 1rem; }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .section-title strong { color: var(--text); }
+
+    @media (max-width: 600px) {
+      .stats-bar { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-title">Admin</div>
+    <div class="login-sub">Acceso restringido al panel de validación</div>
+    <input type="password" id="passInput" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()" />
+    <button class="login-btn" onclick="login()">Entrar</button>
+    <div class="login-error" id="loginError">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- ── PANEL ── -->
+<div id="adminPanel">
+  <header>
+    <div class="logo">GYMLEADERBOARD <span>ADMIN</span></div>
+    <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Total registros</div>
+        <div class="stat-value gold" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value" id="statPending">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Aprobados</div>
+        <div class="stat-value green" id="statApproved">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Rechazados</div>
+        <div class="stat-value red" id="statRejected">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ejercicios</div>
+        <div class="stat-value" id="statExercises">—</div>
+      </div>
+    </div>
+
+    <!-- Filter tabs + refresh -->
+    <div class="top-row">
+      <div class="filter-tabs" id="filterTabs">
+        <button class="f-tab active" onclick="setFilter('pending')"   id="tab-pending">Pendientes <span class="count" id="cnt-pending">0</span></button>
+        <button class="f-tab"        onclick="setFilter('approved')"  id="tab-approved">Aprobados <span class="count" id="cnt-approved">0</span></button>
+        <button class="f-tab"        onclick="setFilter('rejected')"  id="tab-rejected">Rechazados <span class="count" id="cnt-rejected">0</span></button>
+        <button class="f-tab"        onclick="setFilter('all')"       id="tab-all">Todos <span class="count" id="cnt-all">0</span></button>
+      </div>
+      <button class="refresh-btn" onclick="loadRecords()">↻ Actualizar</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Nombre</th>
+            <th>Ejercicio</th>
+            <th>Peso</th>
+            <th>Reps</th>
+            <th>Video</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="adminTable">
+          <tr><td colspan="8" class="empty-msg"><span class="spinner"></span> Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API      = 'https://script.google.com/macros/s/AKfycbwWf-BwLnQKt4oUoV25pHkSxm9H07Ss6E5quL5g-aWj5kYuQEMzMfef08g15gDiRgYU/exec';
+  const PASSWORD = 'admin1234'; // ← CAMBIA ESTO
+  let allRows    = [];
+  let currentFilter = 'pending';
+
+  // ── LOGIN ────────────────────────────────────────────────
+  function login() {
+    const val = document.getElementById('passInput').value;
+    if (val === PASSWORD) {
+      document.getElementById('loginWrap').style.display  = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      loadRecords();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+
+  function logout() {
+    document.getElementById('loginWrap').style.display  = 'flex';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('passInput').value = '';
+  }
+
+  // ── LOAD ─────────────────────────────────────────────────
+  async function loadRecords() {
+    document.getElementById('adminTable').innerHTML =
+      '<tr><td colspan="8" class="empty-msg"><span class="spinner"></span> Cargando...</td></tr>';
+    try {
+      const [recRes, exRes] = await Promise.all([
+        fetch(`${API}?action=getRawRecords`),
+        fetch(`${API}?action=getExercises`),
+      ]);
+      allRows = await recRes.json();
+      const exercises = await exRes.json();
+      updateStats(exercises.length);
+      renderTable();
+    } catch (e) {
+      document.getElementById('adminTable').innerHTML =
+        '<tr><td colspan="8" class="empty-msg" style="color:var(--red)">Error cargando datos. Comprueba la conexión.</td></tr>';
+    }
+  }
+
+  function updateStats(numExercises) {
+    const pending  = allRows.filter(r => r.validated === false || r.validated === 'FALSE' || r.validated === '').length;
+    const approved = allRows.filter(r => r.validated === true  || r.validated === 'TRUE').length;
+    const rejected = allRows.filter(r => r.validated === 'REJECTED').length;
+
+    document.getElementById('statTotal').textContent    = allRows.length;
+    document.getElementById('statPending').textContent  = pending;
+    document.getElementById('statApproved').textContent = approved;
+    document.getElementById('statRejected').textContent = rejected;
+    document.getElementById('statExercises').textContent = numExercises;
+
+    document.getElementById('cnt-pending').textContent  = pending;
+    document.getElementById('cnt-approved').textContent = approved;
+    document.getElementById('cnt-rejected').textContent = rejected;
+    document.getElementById('cnt-all').textContent      = allRows.length;
+  }
+
+  // ── FILTER ───────────────────────────────────────────────
+  function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.f-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + f).classList.add('active');
+    renderTable();
+  }
+
+  function filterRows() {
+    if (currentFilter === 'all')      return allRows;
+    if (currentFilter === 'pending')  return allRows.filter(r => r.validated === false || r.validated === 'FALSE' || r.validated === '');
+    if (currentFilter === 'approved') return allRows.filter(r => r.validated === true  || r.validated === 'TRUE');
+    if (currentFilter === 'rejected') return allRows.filter(r => r.validated === 'REJECTED');
+    return allRows;
+  }
+
+  // ── RENDER ───────────────────────────────────────────────
+  function renderTable() {
+    const rows = filterRows();
+    const tbody = document.getElementById('adminTable');
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="empty-msg">No hay registros en esta categoría.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map((r, i) => {
+      const globalIdx = allRows.indexOf(r);
+      const isApproved = r.validated === true || r.validated === 'TRUE';
+      const isRejected = r.validated === 'REJECTED';
+      const isPending  = !isApproved && !isRejected;
+
+      const badge = isPending
+        ? '<span class="badge badge-pending">Pendiente</span>'
+        : isApproved
+          ? '<span class="badge badge-approved">Aprobado</span>'
+          : '<span class="badge badge-rejected">Rechazado</span>';
+
+      const actions = isPending
+        ? `<div class="action-btns">
+             <button class="btn-approve" onclick="validate(${globalIdx}, true)">✓ Aprobar</button>
+             <button class="btn-reject"  onclick="validate(${globalIdx}, 'REJECTED')">✗ Rechazar</button>
+           </div>`
+        : `<button class="btn-undo" onclick="validate(${globalIdx}, false)">↩ Deshacer</button>`;
+
+      const date = r.timestamp ? new Date(r.timestamp).toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' }) : '—';
+
+      return `<tr>
+        <td style="color:var(--muted);font-size:12px;white-space:nowrap">${date}</td>
+        <td><strong>${r.name}</strong></td>
+        <td style="color:var(--muted)">${r.exercise}</td>
+        <td class="weight-cell">${r.weight} kg</td>
+        <td style="color:var(--muted)">${r.reps} reps</td>
+        <td>${r.videoUrl ? `<a class="video-link" href="${r.videoUrl}" target="_blank">ver</a>` : '<span style="color:var(--border)">—</span>'}</td>
+        <td>${badge}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── VALIDATE ─────────────────────────────────────────────
+  async function validate(idx, value) {
+    const row = allRows[idx];
+    const prevValue = row.validated;
+    row.validated = value; // optimistic update
+    renderTable();
+    updateStats(parseInt(document.getElementById('statExercises').textContent) || 0);
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'validateRecord',
+          rowIndex: idx + 2, // +2: fila 1 = encabezado, 0-indexed → 1-indexed
+          validated: value,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const msg = value === true ? 'Registro aprobado ✓' : value === 'REJECTED' ? 'Registro rechazado' : 'Cambio deshecho';
+        showToast(msg, value === true ? 'success' : 'error');
+      } else {
+        row.validated = prevValue;
+        renderTable();
+        showToast('Error: ' + (data.error || 'inténtalo de nuevo'), 'error');
+      }
+    } catch (e) {
+      row.validated = prevValue;
+      renderTable();
+      showToast('Sin conexión. Inténtalo de nuevo.', 'error');
+    }
+  }
+
+  // ── TOAST ─────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
